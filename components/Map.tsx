@@ -52,9 +52,21 @@ const Map = () => {
     };
   }, []);
 
+  // create a custom icon
+  const customIcon = new L.Icon({
+    iconUrl: 'path/to/image.png', // The URL to the image of the icon.
+    iconRetinaUrl: 'path/to/image@2x.png', // Optional: The URL to a retina sized version of the icon image.
+    iconSize: [38, 95], // Size of the icon in pixels.
+    iconAnchor: [22, 94], // The coordinates of the "tip" of the icon (relative to its top left corner).
+    popupAnchor: [-3, -76], // The coordinates of the point from which popups will "open", relative to the icon anchor.
+    shadowUrl: 'path/to/shadow.png', // Optional: The URL to the image of the icon shadow.
+    shadowSize: [68, 95], // Optional: Size of the shadow image in pixels.
+    shadowAnchor: [22, 94] // Optional: The coordinates of the "tip" of the shadow (relative to its top left corner).
+  });
+
   return (
     <div>
-      <MapContainer style={{ height: '100vh', width: '100vw' }} center={defaultLocation} zoom={4}>
+      <MapContainer style={{ height: '100vh', width: '100vw' }} center={defaultLocation} zoom={5}>
         <MapEvents />
         <TileLayer
           attribution='&copy; Esri &mdash; National Geographic, Esri, DeLorme, NAVTEQ'
