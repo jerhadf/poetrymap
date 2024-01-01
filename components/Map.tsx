@@ -92,7 +92,7 @@ const Map = () => {
           .then((data: { poems: Poem[] }) => {
             // Convert the 'location' string into a [latitude, longitude] array
             const markers = data.poems.map((marker: Poem) => {
-              const [latitude, longitude] = marker.location.split(' ').map(Number);
+              const [longitude, latitude] = marker.location.split(' ').map(Number);
               return {
                 position: [latitude, longitude] as [number, number],
                 link: marker.url,
