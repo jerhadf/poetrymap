@@ -9,9 +9,7 @@ import TextField from '@mui/material/TextField';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useState } from 'react';
-import { MapContainer, Marker, TileLayer, useMapEvents } from 'react-leaflet';
-import MarkerIcon from '../node_modules/leaflet/dist/images/marker-icon.png';
-import MarkerShadow from '../node_modules/leaflet/dist/images/marker-shadow.png';
+import { MapContainer, Marker, TileLayer, Tooltip, useMapEvents } from 'react-leaflet';
 
 const Map = () => {
   const [markers, setMarkers] = useState<Array<{position: [number, number], link: string, title: string}>>([]);
@@ -54,14 +52,10 @@ const Map = () => {
 
   // create a custom icon
   const customIcon = new L.Icon({
-    iconUrl: 'path/to/image.png', // The URL to the image of the icon.
-    iconRetinaUrl: 'path/to/image@2x.png', // Optional: The URL to a retina sized version of the icon image.
-    iconSize: [38, 95], // Size of the icon in pixels.
-    iconAnchor: [22, 94], // The coordinates of the "tip" of the icon (relative to its top left corner).
-    popupAnchor: [-3, -76], // The coordinates of the point from which popups will "open", relative to the icon anchor.
-    shadowUrl: 'path/to/shadow.png', // Optional: The URL to the image of the icon shadow.
-    shadowSize: [68, 95], // Optional: Size of the shadow image in pixels.
-    shadowAnchor: [22, 94] // Optional: The coordinates of the "tip" of the shadow (relative to its top left corner).
+    iconUrl: '/fountain-pen.png', // The URL to the image of the icon.
+    iconSize: [30, 30], // Size of the icon in pixels.
+    iconAnchor: [19, 95], // The coordinates of the "tip" of the icon (relative to its top left corner).
+    popupAnchor: [0, -76], // The coordinates of the point from which popups will "open", relative to the icon anchor
   });
 
   return (
@@ -76,18 +70,22 @@ const Map = () => {
           <Marker
             key={idx}
             position={marker.position}
-            icon={
-              new L.Icon({
-                iconUrl: MarkerIcon.src,
-                iconRetinaUrl: MarkerIcon.src,
-                iconSize: [25, 41],
-                iconAnchor: [12.5, 41],
-                popupAnchor: [0, -41],
-                shadowUrl: MarkerShadow.src,
-                shadowSize: [41, 41],
-              })
-            }
-          />
+            icon={customIcon}
+            eventHandlers={{
+              click: () => {
+                window.location.href = marker.link;
+              },
+            }}
+            >
+            <Tooltip
+              offset={[-15,-80]}
+              direction={'left'}
+              opacity={0.7}
+              permanent
+            >
+              {marker.title}
+            </Tooltip>
+          </Marker>
         ))}
         </MapContainer>
         <Dialog open={open} onClose={() => setOpen(false)}>

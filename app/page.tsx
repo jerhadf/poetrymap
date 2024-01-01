@@ -1,5 +1,5 @@
+import MapTitle from '@/components/MapTitle';
 import dynamic from 'next/dynamic';
-import MapTitle from '../components/MapTitle';
 
 const DynamicMap = dynamic(() => import('../components/Map'), {
   ssr: false
