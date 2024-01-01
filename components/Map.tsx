@@ -1,5 +1,6 @@
 'use client'
 
+import { loadPoems } from '@/lib/loadPoems';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -20,6 +21,13 @@ const Map = () => {
   // center of the US by default
   const defaultLocation: [number, number] = [39.50, -98.35];
 
+  /**
+   * Function to add a new pin to the map.
+   *
+   * This function is triggered when a user clicks on the map. It creates a new marker at the clicked location,
+   * opens a dialog for the user to input a title and a link, and then adds the new marker to the state and the database.
+   * If the user cancels the dialog, the temporary pin is discarded and no new marker is added.
+   */
   const addPin = () => {
     if (tempPin) {
       const newMarker = {position: tempPin, link, title};
@@ -44,6 +52,9 @@ const Map = () => {
     }
   };
 
+  /**
+   * Handles map events such as click.
+   */
   const MapEvents = () => {
     useMapEvents({
       click: (e) => {
@@ -55,20 +66,21 @@ const Map = () => {
   };
 
   // Fetch the markers from the database when the component mounts
-  interface PoemMarker {
+  type Poem = {
     location: string;
     url: string;
     title: string;
   }
 
   useEffect(() => {
-    fetch('/api/get-poems')
+    loadPoems().then(() => {
+      fetch('/api/get-poems')
       .then(response => response.json())
-      .then((data: { poems: PoemMarker[] }) => {
+      .then((data: { poems: Poem[] }) => {
         // Convert the 'location' string into a [latitude, longitude] array
-        const markers = data.poems.map(marker => {
+        const markers = data.poems.map((marker: Poem) => {
           const [latitude, longitude] = marker.location.split(' ').map(Number);
-          console.log("Adding marker with url " + marker.url)
+          console.log("Adding marker, url:" + marker.url + ", title:" + marker.title + ", location:" + marker.location)
           return {
             position: [latitude, longitude] as [number, number],
             link: marker.url,
@@ -76,7 +88,11 @@ const Map = () => {
           };
         });
         setMarkers(markers);
+      })
+      .catch(error => {
+        console.log('Error loading poems:', error);
       });
+    });
   }, []);
 
   // create a custom icon
@@ -119,7 +135,7 @@ const Map = () => {
                   .then(data => {
                     console.log(data.message);
                     // Remove the marker from the state
-                    setMarkers(markers.filter(m => m.position !== marker.position));
+                    setMarkers(prevMarkers => prevMarkers.filter(m => m.position !== marker.position));
                   });
                 }
               },
