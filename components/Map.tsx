@@ -8,7 +8,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { MapContainer, Marker, TileLayer, Tooltip, useMapEvents } from 'react-leaflet';
 
 const Map = () => {
@@ -38,17 +38,19 @@ const Map = () => {
     return null;
   };
 
-  // load the leaflet-providers library for custom map styling
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://unpkg.com/leaflet-providers@latest/leaflet-providers.js';
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
+  // // Fetch the markers from the database when the component mounts
+  // useEffect(() => {
+  //   fetch('/api/markers')
+  //     .then(response => response.json())
+  //     .then(data => {
+  //       // Convert the 'location' string into a [latitude, longitude] array
+  //       const markers = data.map(marker => ({
+  //         ...marker,
+  //         position: marker.location.split(' ').map(Number),
+  //       }));
+  //       setMarkers(markers);
+  //     });
+  // }, []);
 
   // create a custom icon
   const customIcon = new L.Icon({
