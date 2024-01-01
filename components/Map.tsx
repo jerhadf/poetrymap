@@ -8,7 +8,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { MapContainer, Marker, TileLayer, Tooltip, useMapEvents } from 'react-leaflet';
 
 const Map = () => {
@@ -22,9 +22,23 @@ const Map = () => {
 
   const addPin = () => {
     if (tempPin) {
-      setMarkers([...markers, {position: tempPin, link, title}]);
+      const newMarker = {position: tempPin, link, title};
+      setMarkers([...markers, newMarker]);
       setTempPin(null);
       setOpen(false);
+
+      // Save the new marker to the database
+      fetch('/api/add-poem', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          location: newMarker.position.join(' '),
+          title: newMarker.title,
+          url: newMarker.link,
+        }),
+      });
     }
   };
 
@@ -38,19 +52,29 @@ const Map = () => {
     return null;
   };
 
-  // // Fetch the markers from the database when the component mounts
-  // useEffect(() => {
-  //   fetch('/api/markers')
-  //     .then(response => response.json())
-  //     .then(data => {
-  //       // Convert the 'location' string into a [latitude, longitude] array
-  //       const markers = data.map(marker => ({
-  //         ...marker,
-  //         position: marker.location.split(' ').map(Number),
-  //       }));
-  //       setMarkers(markers);
-  //     });
-  // }, []);
+  // Fetch the markers from the database when the component mounts
+  interface PoemMarker {
+    location: string;
+    link: string;
+    title: string;
+  }
+
+  useEffect(() => {
+    fetch('/api/get-poems')
+      .then(response => response.json())
+      .then((data: PoemMarker[]) => {
+        // Convert the 'location' string into a [latitude, longitude] array
+        const markers = data.map(marker => {
+          const [longitude, latitude] = marker.location.split(' ').map(Number);
+          return {
+            position: [latitude, longitude] as [number, number],
+            link: marker.link,
+            title: marker.title,
+          };
+        });
+        setMarkers(markers);
+      });
+  }, []);
 
   // create a custom icon
   const customIcon = new L.Icon({
