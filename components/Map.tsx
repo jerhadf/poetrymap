@@ -57,20 +57,21 @@ const Map = () => {
   // Fetch the markers from the database when the component mounts
   interface PoemMarker {
     location: string;
-    link: string;
+    url: string;
     title: string;
   }
 
   useEffect(() => {
-    fetch('/api/markers')
+    fetch('/api/get-poems')
       .then(response => response.json())
-      .then((data: { poems: { rows: PoemMarker[] } }) => {
+      .then((data: { poems: PoemMarker[] }) => {
         // Convert the 'location' string into a [latitude, longitude] array
-        const markers = data.poems.rows.map(marker => {
-          const [longitude, latitude] = marker.location.split(' ').map(Number);
+        const markers = data.poems.map(marker => {
+          const [latitude, longitude] = marker.location.split(' ').map(Number);
+          console.log("Adding marker with url " + marker.url)
           return {
             position: [latitude, longitude] as [number, number],
-            link: marker.link,
+            link: marker.url,
             title: marker.title,
           };
         });
@@ -102,6 +103,25 @@ const Map = () => {
             eventHandlers={{
               click: () => {
                 window.location.href = marker.link;
+              },
+              contextmenu: () => {
+                if (window.confirm('Are you sure you want to delete this marker?')) {
+                  fetch('/api/delete-poem', {
+                    method: 'DELETE',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      location: marker.position.join(' '),
+                    }),
+                  })
+                  .then(response => response.json())
+                  .then(data => {
+                    console.log(data.message);
+                    // Remove the marker from the state
+                    setMarkers(markers.filter(m => m.position !== marker.position));
+                  });
+                }
               },
             }}
             >

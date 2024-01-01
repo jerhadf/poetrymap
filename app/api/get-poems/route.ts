@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server';
 export async function GET(request: Request) {
   try {
     const client = await db.connect()
-    const poems = await client.sql`SELECT * FROM Poems`;
+    const { rows: poems } = await client.sql`SELECT * FROM Poems`;
     client.release()
     return NextResponse.json({ poems }, { status: 200 });
   } catch (error) {
