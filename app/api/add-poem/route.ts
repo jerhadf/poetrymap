@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { db } from '@vercel/postgres';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
@@ -9,12 +9,16 @@ export async function POST(request: Request) {
 
     try {
       if (!location || !title || !url) throw new Error('Location, title, and url are required');
-      await sql`INSERT INTO Poems (location, title, url) VALUES (${location}, ${title}, ${url});`;
+      const client = await db.connect();
+      await client.sql`INSERT INTO Poems (location, title, url) VALUES (${location}, ${title}, ${url});`;
+      client.release()
     } catch (error) {
       return NextResponse.json({ error }, { status: 500 });
     }
 
-    const poems = await sql`SELECT * FROM Poems;`;
+    const client = await db.connect();
+    const poems = await client.sql`SELECT * FROM Poems;`;
+    client.release()
     return NextResponse.json({ poems }, { status: 200 });
   } else {
     return NextResponse.json({ error: 'Request body is null' }, { status: 400 });

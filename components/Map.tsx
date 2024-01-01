@@ -39,6 +39,8 @@ const Map = () => {
           url: newMarker.link,
         }),
       });
+
+      console.log("Added marker to database with url " + newMarker.link);
     }
   };
 
@@ -60,11 +62,11 @@ const Map = () => {
   }
 
   useEffect(() => {
-    fetch('/api/get-poems')
+    fetch('/api/markers')
       .then(response => response.json())
-      .then((data: PoemMarker[]) => {
+      .then((data: { poems: { rows: PoemMarker[] } }) => {
         // Convert the 'location' string into a [latitude, longitude] array
-        const markers = data.map(marker => {
+        const markers = data.poems.rows.map(marker => {
           const [longitude, latitude] = marker.location.split(' ').map(Number);
           return {
             position: [latitude, longitude] as [number, number],
