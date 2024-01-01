@@ -1,6 +1,6 @@
 'use client'
 
-import { loadPoems } from '@/lib/loadPoems';
+import poems from '@/scripts/poems_table.json';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -73,33 +73,49 @@ const Map = () => {
   }
 
   useEffect(() => {
-    loadPoems().then(() => {
-      fetch('/api/get-poems')
-      .then(response => response.json())
-      .then((data: { poems: Poem[] }) => {
-        // Convert the 'location' string into a [latitude, longitude] array
-        const markers = data.poems.map((marker: Poem) => {
-          const [latitude, longitude] = marker.location.split(' ').map(Number);
-          console.log("Adding marker, url:" + marker.url + ", title:" + marker.title + ", location:" + marker.location)
-          return {
-            position: [latitude, longitude] as [number, number],
-            link: marker.url,
-            title: marker.title,
-          };
-        });
-        setMarkers(markers);
-      })
-      .catch(error => {
-        console.log('Error loading poems:', error);
+    // Load the new poems into the database
+    const addPoemsPromises = poems.map(poem => {
+      return fetch('/api/add-poem', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(poem),
       });
     });
+
+    Promise.all(addPoemsPromises)
+      .then(() => {
+        // Fetch the existing poems from the database
+        fetch('/api/get-poems')
+          .then(response => response.json())
+          .then((data: { poems: Poem[] }) => {
+            // Convert the 'location' string into a [latitude, longitude] array
+            const markers = data.poems.map((marker: Poem) => {
+              const [latitude, longitude] = marker.location.split(' ').map(Number);
+              return {
+                position: [latitude, longitude] as [number, number],
+                link: marker.url,
+                title: marker.title,
+              };
+            });
+            console.log('Poems to be added as markers:\n', markers)
+            setMarkers(markers);
+          })
+          .catch(error => {
+            console.log('Error fetching existing poems:', error);
+          });
+      })
+      .catch(error => {
+        console.log('Error adding new poems:', error);
+      });
   }, []);
 
   // create a custom icon
   const customIcon = new L.Icon({
     iconUrl: '/fountain-pen.png', // The URL to the image of the icon.
     iconSize: [30, 30], // Size of the icon in pixels.
-    iconAnchor: [19, 95], // The coordinates of the "tip" of the icon (relative to its top left corner).
+    iconAnchor: [15, 95], // The coordinates of the "tip" of the icon (relative to its top left corner).
     popupAnchor: [0, -76], // The coordinates of the point from which popups will "open", relative to the icon anchor
   });
 
@@ -135,7 +151,7 @@ const Map = () => {
                   .then(data => {
                     console.log(data.message);
                     // Remove the marker from the state
-                    setMarkers(prevMarkers => prevMarkers.filter(m => m.position !== marker.position));
+                    setMarkers(prevMarkers => prevMarkers.filter(m => m.position.toString() !== marker.position.toString()));
                   });
                 }
               },

@@ -6,11 +6,24 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { location, title, url } = body;
 
-
     try {
       if (!location || !title || !url) throw new Error('Location, title, and url are required');
       const client = await db.connect();
-      await client.sql`INSERT INTO Poems (location, title, url) VALUES (${location}, ${title}, ${url});`;
+
+      // Check if a poem with the same URL already exists
+      const existingPoem = await client.sql`SELECT * FROM Poems WHERE url = ${url};`;
+
+      // If poems with the same URL already exist, delete them
+      if (existingPoem.rowCount > 0) {
+        await client.sql`DELETE FROM Poems WHERE url = ${url};`;
+      }
+
+      // Insert the new poem into the database
+      await client.sql`
+        INSERT INTO Poems (location, title, url)
+        VALUES (${location}, ${title}, ${url});
+      `;
+
       client.release()
     } catch (error) {
       return NextResponse.json({ error }, { status: 500 });
